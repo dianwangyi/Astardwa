@@ -66,7 +66,7 @@ MD_W_RESOLUTION  = 6;%  转速分辨率[rad/s]]
 
 % 评价函数参数 [heading,dist,velocity,predictDT]
 % 航向得分的比重、距离得分的比重、速度得分的比重、向前模拟轨迹的时间
-evalParam = [0.05, 0.2 ,0.5, 0.0, 0.3, 3.0];
+evalParam = [0.05, 0.2 ,0.5, 0.0, 3.0];
 
 area      = [-1 11 -1 11];% 模拟区域范围 [xmin xmax ymin ymax]
 
