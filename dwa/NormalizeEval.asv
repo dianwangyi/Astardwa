@@ -18,8 +18,6 @@ if sum(EvalDB(:,7))~= 0
     EvalDB(:,7) = EvalDB(:,7)/sum(EvalDB(:,7));
 end
 if sum(EvalDB(:,8))~= 0
-    EvalDB(:,8) = EvalDB(:,8)/sum(EvalDB(:,8));
-if sum(EvalDB(:,9))~= 0
-    EvalDB(:,9) = EvalDB(:,9)/sum(EvalDB(:,9));
+    EvalDB(:,8) = EvalDB(:,7)/sum(EvalDB(:,7));
 end
 end

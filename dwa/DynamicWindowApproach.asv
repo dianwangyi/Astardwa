@@ -13,10 +13,10 @@ Vr = CalcDynamicWindow(x,model);  % 根据当前状态 和 运动模型 计算�
 
 
 % dete_dist = CalcDistEval(x,ob(4:7,:),R)
-% dete_dist = min(evalDB(:,7));
-% if dete_dist < 1
-%       u=[0;0];return;
-% end
+dete_dist = min(evalDB(:,7));
+if dete_dist < 1
+      u=[0;0];return;
+end
 
 if isempty(evalDB)
     disp('no path to goal!!');
@@ -29,7 +29,7 @@ evalDB = NormalizeEval(evalDB);
 % 最终评价函数的计算
 feval=[];
 for id=1:length(evalDB(:,1))
-    feval = [feval;evalParam(1:7)*evalDB(id,3:9)']; %根据评价函数参数 前三个参数分配的权重 计算每一组可用的路径参数信息的得分
+    feval = [feval;evalParam(1:6)*evalDB(id,3:8)']; %根据评价函数参数 前三个参数分配的权重 计算每一组可用的路径参数信息的得分
 end
 evalDB = [evalDB feval]; % 最后一组
 

@@ -12,10 +12,10 @@ MD_VW    = 4;%
 
 global dt;
 % 车子速度的最大最小范围 依次为：最小速度 最大速度 最小角速度 最大角速度速度
-Vs=[0 model(MD_MAX_V) -model(MD_MAX_W) model(MD_MAX_W)];
+Vs=[0, model(MD_MAX_V), -model(MD_MAX_W), model(MD_MAX_W)];
 
 % 根据当前速度以及加速度限制计算的动态窗口  依次为：最小速度 最大速度 最小角速度 最大角速度速度
-Vd = [x(V_SPD)-model(MD_ACC)*dt x(V_SPD)+model(MD_ACC)*dt x(W_ANGLE_SPD)-model(MD_VW)*dt x(W_ANGLE_SPD)+model(MD_VW)*dt];
+Vd = [x(V_SPD)-model(MD_ACC)*dt, x(V_SPD)+model(MD_ACC)*dt, x(W_ANGLE_SPD)-model(MD_VW)*dt x(W_ANGLE_SPD)+model(MD_VW)*dt];
 
 % 最终的Dynamic Window
 Vtmp = [Vs;Vd];  %2 X 4  每一列依次为：最小速度 最大速度 最小角速度 最大角速度速度

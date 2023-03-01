@@ -11,7 +11,7 @@ for vt = Vr(1):model(5):Vr(2)       %根据速度分辨率遍历所有可用速�
     for ot=Vr(3):model(6):Vr(4)     %根据角度分辨率遍历所有可用角速度： 最小角速度和最大角速度 之间 角度分辨率 递增
         % 轨迹推测; 得到 xt: 机器人向前运动后的预测位姿; traj: 当前时刻 到 预测时刻之间的轨迹（由轨迹点组成）
         [xt,traj] = GenerateTrajectory(x,vt,ot,evalParam(8),model);  %evalParam(8),前向模拟时间;
-%         obTraj = GenerateObTraj(ob);
+        GenerateObTraj
         % 各评价函数的计算
         goalcost = GoalCost(xt,x,goal);
         heading = CalcHeadingEval(xt,goal); % 前项预测终点的航向得分  偏差越小分数越高
