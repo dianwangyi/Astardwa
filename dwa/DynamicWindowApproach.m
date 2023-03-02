@@ -3,26 +3,26 @@
 % 输入参数：当前状态、模型参数、目标点、评价函数的参数、障碍物位置、障碍物半径
 % 返回参数：控制量 u = [v(m/s),w(rad/s)] 和 轨迹集合 N * 31  （N：可用的轨迹数）
 % 选取最优参数的物理意义：在局部导航过程中，使得机器人避开障碍物，朝着目标以较快的速度行驶。
-function [u,trajDB] = DynamicWindowApproach(x,model,goal,evalParam,ob,R, path)
+function [u,trajDB] = DynamicWindowApproach(x,model,goal,evalParam,ob,R, path, xb, ub)
 % Dynamic Window [vmin,vmax,wmin,wmax] 最小速度 最大速度 最小角速度 最大角速度速度
 Vr = CalcDynamicWindow(x,model);  % 根据当前状态 和 运动模型 计算当前的参数允许范围
 
 % 评价函数的计算 evalDB N*5  每行一组可用参数 分别为 速度、角速度、航向得分、距离得分、速度得分
 %               trajDB      每5行一条轨迹 每条轨迹都有状态x点串组成
-[eval,evalDB,trajDB]= Evaluation(x,Vr,goal,ob,R,model,evalParam, path);  %evalParam 评价函数参数 [heading,dist,velocity,predictDT]
+[eval,evalDB,trajDB]= Evaluation(x,Vr,goal,ob,R,model,evalParam, path, xb, ub);  %evalParam 评价函数参数 [heading,dist,velocity,predictDT]
 
 
-% dete_dist = CalcDistEval(x,ob(4:7,:),R)
+% dete_dist = CalcDistEval(x,ob(4:7,:),R);
 % dete_dist = min(evalDB(:,7));
 % if dete_dist < 1
 %       u=[0;0];return;
 % end
 
+
 if isempty(evalDB)
     disp('no path to goal!!');
     u=[0;0];return;
 end
-
 % 各评价函数正则化
 evalDB = NormalizeEval(evalDB);
 

@@ -1,9 +1,0 @@
-function [obTraj]  = GenerateObTraj(ob)
-
-global dt;
-
-for 1:length(ob(:, 1))
-     while time <= evaldt
-        time = time+dt; % 时间更新
-        traj = [traj x]; % 每一列代表一个轨迹点 一列一列的添加
-end

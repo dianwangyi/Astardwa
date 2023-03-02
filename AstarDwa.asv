@@ -26,17 +26,39 @@ W_ANGLE_SPD = 5;  %机器人角速度
 
 goal = [10,10];   % 目标点位置 [x(m),y(m)]
 
-xb = [3 2 0]';
-obstacle = [6 6;
-    4 4;
-    2 5;
-    1 2; % Dynamic
-    4 4;
-    7 3;
-    7 9; % Dynamic
-    6 4;
-    8 9;
-    9 6];
+% xb = [3 2 0]';
+xb = [6 7 0 0 0;
+        4 4 0 0 0;
+        2 5 0 0 0;
+        1 2 0 0 0; % dy
+        4 4 pi 0 0;
+        7 3 pi/2 0 0;
+        7 7 0 0 0; % dy
+        6 4 0 0 0;
+        8 9 0 0 0;
+        9 6 0 0 0]';
+    
+    ub = [0 0;
+            0 0;
+            0 0;
+            0 0;
+            0.5 0;
+            0.7 0;
+            0.7 0;
+            0 0;
+            0 0;
+            0 0]';
+
+% obstacle = [6 6;
+%     4 4;
+%     2 5;
+%     1 2; % Dynamic
+%     4 4;
+%     7 3;
+%     7 9; % Dynamic
+%     6 4;
+%     8 9;
+%     9 6];
 obstacleR = 0.5;% 冲突判定用的障碍物半径
 
 
@@ -44,7 +66,9 @@ map.XYMAX = 10;
 map.start = [0, 0];
 map.goal = goal;
 
-path = AStar(obstacle, map);
+%path = AStar(xb(1:2, :)', map);
+[path, ~, ~]=AStar_24(xb(1:2, :)', map);%24_A*算法
+
 path = flip(path);
 
 globalgoal = goal;
@@ -67,7 +91,7 @@ MD_W_RESOLUTION  = 6;%  转速分辨率[rad/s]]
 
 
 % 评价函数参数 [heading,dist,velocity,predictDT]
-% 航向得分的比重、距离得分的比重、速度得分的比重、向前模拟轨迹的时间
+% 1.航向得分的比重、2.距离得分的比重、3.速度得分的比重、4. deter_v, 5.向前模拟轨迹的时间
 evalParam = [0.05, 0.3 ,0.3, 0.0, 0.3, 0.0, 0, 3.0];
 
 area      = [-1 11 -1 11];% 模拟区域范围 [xmin xmax ymin ymax]
@@ -88,6 +112,7 @@ rotation_matrix = [
 transformed = this.robot_body*rotation_matrix';
 % movcount=0;
 %% Main loop   循环运行 5000次 指导达到目的地 或者 5000次运行结束
+edge_flag = [0; 0; 0; 0; 0; 0; 0; 0; 0; 0 ];
 max_flag = 0; % 障碍物到达最大边界的标志
 min_flag = 0; % 障碍物到达最小边界的标志
 
@@ -101,24 +126,55 @@ for i = 1:5000
     
     localgoal = tmpgoal;
     
+    obstacle = [];
+    for inxOb = 1 : length(xb(1, :))
+%         if xb(1, inxOb) >= 8
+%             max_flag = 1;
+%             min_flag = 0;
+%         elseif xb(1, inxOb) <= 0
+%             max_flag = 0;
+%             min_flag = 1;
+%         end
+%         if max_flag == 1
+%             ub = -ub;  % 障碍物的速度，
+%         elseif min_flag == 1
+%             ub = ub;
+%         end
+        if (xb(1, inxOb) >= 8) || (xb(2, inxOb) >= 8) || (xb(1, inxOb) <= 0) || (xb(2, inxOb) <= 0)   
+            edge_flag(inxOb) = 1;
+        else 
+            edge_flag(inxOb) = 0;
+        end
+        if edge_flag(inxOb) == 1
+            ub(1, inxOb) = -ub(1, inxOb);
+        end
+        xb(:, inxOb) = fb(xb(:, inxOb),ub(:, inxOb));
+        xbi = xb(1:2, inxOb);
+        xbi = xbi';
+        obstacle = [obstacle; xbi];
+    end
+    
+    
     % DWA参数输入 返回控制量 u = [v(m/s),w(rad/s)] 和 轨迹
-    [u,traj] = DynamicWindowApproach(x,Kinematic,localgoal,evalParam,obstacle,obstacleR, path);
+    [u,traj] = DynamicWindowApproach(x,Kinematic,localgoal,evalParam,obstacle,obstacleR, path, xb, ub);
     x = f(x,u);% 机器人移动到下一个时刻的状态量 根据当前速度和角速度推导 下一刻的位置和角度
     
-    ub = [0.7,0]';
-    if xb(1) >= 8
-        max_flag = 1;
-        min_flag = 0;
-    elseif xb(1) <= 0
-        max_flag = 0;
-        min_flag = 1;
-    end
-    if max_flag == 1
-        ub = -ub;  % 障碍物的速度，
-    elseif min_flag == 1
-        ub = ub;
-    end
-    xb = fb(xb,ub);
+
+        
+%     ub = [0.7,0]';
+%     if xb(1) >= 8
+%         max_flag = 1;
+%         min_flag = 0;
+%     elseif xb(1) <= 0
+%         max_flag = 0;
+%         min_flag = 1;
+%     end
+%     if max_flag == 1
+%         ub = -ub;  % 障碍物的速度，
+%     elseif min_flag == 1
+%         ub = ub;
+%     end
+%     xb = fb(xb,ub);
 %     obstacle = [0 2;
 %         2 4;
 %         2 5;
@@ -129,10 +185,10 @@ for i = 1:5000
 %         8 5
 %         xb(1) 8
 %         9 9];
-    obstacle(4,1) = 10-xb(1);
-    obstacle(5,2) = 10-0.7*xb(1);
-    obstacle(6,2) = 0.5*xb(1);
-    obstacle(7,1) = 0.5*xb(1);
+%     obstacle(4,1) = 10-xb(1);
+%     obstacle(5,2) = 10-0.7*xb(1);
+%     obstacle(6,2) = 0.5*xb(1);
+%     obstacle(7,1) = 0.5*xb(1);
     
     % 历史轨迹的保存
     result.x = [result.x; x'];  %最新结果 以列的形式 添加到result.x

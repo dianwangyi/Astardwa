@@ -12,7 +12,7 @@ obstacle=GetObstacle(nObstacle,obstacle,map);%障碍物和边界坐标
 %obstacle = [obstacle;1,2;2,1;2,2];%此也为全封死的情况，也没有路的
 %obstacle = [obstacle;1,3;2,3;3,3;3,2;3,1];%此也为全封死情况，也没有路的
 %
-path=AStar(obstacle,map)%A*算法
+[path,close, open]=AStar_24(obstacle,map);%A*算法
 
 %画出路径
 %

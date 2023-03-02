@@ -107,7 +107,7 @@ while ~findFlag
         
         %下面的end是判断八个相邻节点的for循环的end
     end
-    %plot_map(map,obstacle,open,close);
+%     plot_map(map,obstacle,open,close);
 
 end
 

@@ -3,7 +3,7 @@
 % 返回参数：
 %           evalDB N*5  每行一组可用参数 分别为 速度、角速度、航向得分、距离得分、速度得分
 %           trajDB      每5行一条轨迹 每条轨迹包含 前向预测时间/dt + 1 = 31 个轨迹点（见生成轨迹函数）
-function [eval ,evalDB,trajDB] = Evaluation(x,Vr,goal,ob,R,model,evalParam, path)
+function [eval ,evalDB,trajDB] = Evaluation(x,Vr,goal,ob,R,model,evalParam, path, xb, ub)
 evalDB = [];
 eval = [];
 trajDB = [];
@@ -11,7 +11,7 @@ for vt = Vr(1):model(5):Vr(2)       %根据速度分辨率遍历所有可用速�
     for ot=Vr(3):model(6):Vr(4)     %根据角度分辨率遍历所有可用角速度： 最小角速度和最大角速度 之间 角度分辨率 递增
         % 轨迹推测; 得到 xt: 机器人向前运动后的预测位姿; traj: 当前时刻 到 预测时刻之间的轨迹（由轨迹点组成）
         [xt,traj] = GenerateTrajectory(x,vt,ot,evalParam(8),model);  %evalParam(8),前向模拟时间;
-%         obTraj = GenerateObTraj(ob);
+        obTraj = GenerateDyObTraj(xb, ub, evalParam(8));
         % 各评价函数的计算
         goalcost = GoalCost(xt,x,goal);
         heading = CalcHeadingEval(xt,goal); % 前项预测终点的航向得分  偏差越小分数越高
@@ -23,6 +23,9 @@ for vt = Vr(1):model(5):Vr(2)       %根据速度分辨率遍历所有可用速�
         deter_dit = CalcDistEval(xt,ob(4:7,:),R);
         dist_cloest_node = CalcDistClt(xt, path);
         dist_goal = CalaGoal(xt, goal);
+        
+        traj = checkCollision(traj, obTraj, R);
+        
         if dist > stopDist % 如果可能撞到最近的障碍物 则舍弃此路径 （到最近障碍物的距离 大于 刹车距离 才取用）
             evalDB = [evalDB; [vt, ot, heading, dist, vel, deter_v, deter_dit, dist_cloest_node, dist_goal]];
             trajDB = [trajDB; traj];   % 每5行 一条轨迹
